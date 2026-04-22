@@ -1,0 +1,16 @@
+/* Global resets — MUI's CssBaseline handles most of the cross-browser
+   normalisation; this file only carries minimal overrides. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+#root {
+  min-height: 100vh;
+}

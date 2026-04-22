@@ -1,0 +1,49 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: fitness-db
+    environment:
+      POSTGRES_DB: fitness_db
+      POSTGRES_USER: fitness_user
+      POSTGRES_PASSWORD: fitness_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fitness_user -d fitness_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: fitness-backend
+    environment:
+      DATABASE_URL: postgresql://fitness_user:fitness_password@db:5432/fitness_db
+      SECRET_KEY: your-secret-key-change-in-production
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 60
+      FRONTEND_ORIGINS: http://localhost:5173
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: fitness-frontend
+    environment:
+      VITE_API_BASE_URL: http://localhost:8000/api/v1
+    depends_on:
+      - backend
+    ports:
+      - "5173:5173"
+
+volumes:
+  postgres_data:
